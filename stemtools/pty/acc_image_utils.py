@@ -1,11 +1,15 @@
-import numba.cuda
+import numba
 import numpy as np
 import cupy as cp
 import cupyx.scipy.ndimage as csnd
+from numba import cuda
+import numba.cuda
+numba.cuda.select_device(3)
 
-def resizer(data,
-            N):
+@numba.cuda.jit
+def cuda_resizer(data,res):   
     M = data.size
+    N = res.size
     carry=0
     m=0
     for n in range(int(N)):
@@ -16,7 +20,6 @@ def resizer(data,
         carry = (m-(n+1)*M/N)*data[m-1]
         data_sum -= carry
         res[n] = data_sum*N/M
-    return res
 
 def cu_rot(arr,angle):
     cu_arr = cp.asarray(arr)
@@ -25,7 +28,7 @@ def cu_rot(arr,angle):
     return rot_arr
 
 def gpu_rot4D(data4D,rotangle,flip=True):
-    cu4D = cp.asarray(data4D)
+    cu4D = cp.asarray(data4D,dtype=np.float16)
     if flip:
        cu4D = cp.flip(cu4D,axis=-1)
     data_shape = np.shape(data4D)
