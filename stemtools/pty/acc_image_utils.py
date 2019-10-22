@@ -32,7 +32,9 @@ def gpu_rot4D(data4D,rotangle,flip=True):
     if flip:
        cu4D = cp.flip(cu4D,axis=-1)
     data_shape = np.shape(data4D)
-    for itm in cu4D.reshape(-1, data_shape[-2], data_shape[-1]):
-            csnd.rotate(itm, rotangle,reshape=False)
-    rot4D = cp.asnumpy(cu4D)
+    # for itm in cu4D.reshape(-1, data_shape[-2], data_shape[-1]):
+           # csnd.rotate(itm, rotangle,reshape=False)
+    #rot4D = cp.asnumpy(csnd.rotate(cu4D.reshape(-1, data_shape[-2], data_shape[-1]), rotangle, reshape=False))
+    rot4D = cp.asnumpy(csnd.rotate(cu4D.reshape(-1, data_shape[-2], data_shape[-1]), rotangle, axes=(1,2), reshape=False))        
     return rot4D
+
