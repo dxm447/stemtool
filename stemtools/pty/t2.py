@@ -2,8 +2,6 @@ import numpy as np
 import acc_image_utils as acc
 import time
 
-
-n1 = np.load('Data1_4D.npy')
 t1 = time.time()
 size=256
 shape = (size,size,size,size)
