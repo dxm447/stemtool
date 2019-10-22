@@ -24,8 +24,10 @@ def cu_rot(arr,angle):
     rot_arr = cp.asnumpy(cu_rot)
     return rot_arr
 
-def gpu_rot4D(data4D,rotangle):
+def gpu_rot4D(data4D,rotangle,flip=True):
     cu4D = cp.asarray(data4D)
+    if flip:
+       cu4D = cp.flip(cu4D,axis=-1)
     data_shape = np.shape(data4D)
     for itm in cu4D.reshape(-1, data_shape[-2], data_shape[-1]):
             csnd.rotate(itm, rotangle,reshape=False)
