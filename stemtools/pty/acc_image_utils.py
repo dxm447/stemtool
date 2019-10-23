@@ -50,9 +50,10 @@ def cupy_jit_resizer2D(data2D,new_size):
     return res2D
 
 def cupy_jit_resizer4D(data4D,resized_size,return_numpy=False):
-    data_size = np.shape(data4D)
+    data4D = cp.asarray(data4D) 
+    data_size = cp.shape(data4D)
     flattened_shape = (data_size[0]*data_size[1],data_size[2]*data_size[3])
-    data4D_flatten = cp.reshape(cp.asarray(data4D),flattened_shape)
+    data4D_flatten = cp.reshape(data4D,flattened_shape)
     flat_res_shape = (data_size[0]*data_size[1],resized_size[0]*resized_size[1])
     flatres4D = cp.zeros(flat_res_shape,dtype=data4D.dtype)
     cupy_jit_2D_xdim(data4D_flatten,flat_res_shape[1],flatres4D,flat_res_shape[0])
@@ -61,6 +62,25 @@ def cupy_jit_resizer4D(data4D,resized_size,return_numpy=False):
        res4D = cp.asnumpy(res4D)
     return res4D
 
+def cupy_pad(data4D,padded_size):
+    data4D = cp.asarray(data4D)
+    data_size = cp.shape(data4D)
+    data_4D = cp.reshape(data4D,(data_size[0]*data_size[1],data_size[2],data_size[3]))
+    pad_4D = cp.zeros((data_size[0]*data_size[1],padded_size[0],padded_size[1]),dtype=data4D.dtype)
+    no_pixels = data_size[0]*data_size[1]
+    raw_size = data_size[2:]
+    cupy_jit_gpu_pad4D(data_4D,pad_4D,raw_size,padded_size,no_pixels)
+    pad_4D = cp.reshape(pad_4D,(data_size[0],data_size[1],padded_size[0],padded_size[1]))
+    if return_numpy:
+       pad_4D = cp.asnumpy(pad_4D)
+    return pad_4D
+
+@numba.cuda.jit
+def cupy_jit_gpu_pad4D(cudata4D_flat,cupad4D_flat,raw_size,pad_size,no_pixels):
+    pad_width = int(0.5*(pad_size - data_size[1:]))
+    for ii in range(no_pixels):
+        cupad4D[ii,:,:] = cp.pad(cudata4D,((pad_width[0], pad_width[0]), (pads_width[1], pad_width[1])))
+    
 @numba.cuda.jit(device=True)
 def cupy_jit_resizer_gpu(cudat,N,cures):
     M = cudat.size
@@ -93,14 +113,13 @@ def cu_rot(arr,angle):
     rot_arr = cp.asnumpy(cu_rot)
     return rot_arr
 
-def gpu_rot4D(data4D,rotangle,flip=True):
-    cu4D = cp.asarray(data4D,dtype=np.float16)
+def gpu_rot4D(data4D,rotangle,flip=True,return_numpy=False):
+    data4D = cp.asarray(data4D,dtype=np.float16)
     if flip:
-       cu4D = cp.flip(cu4D,axis=-1)
-    data_shape = np.shape(data4D)
-    # for itm in cu4D.reshape(-1, data_shape[-2], data_shape[-1]):
-           # csnd.rotate(itm, rotangle,reshape=False)
-    #rot4D = cp.asnumpy(csnd.rotate(cu4D.reshape(-1, data_shape[-2], data_shape[-1]), rotangle, reshape=False))
-    rot4D = cp.asnumpy(csnd.rotate(cu4D.reshape(-1, data_shape[-2], data_shape[-1]), rotangle, axes=(1,2), reshape=False))        
-    return rot4D
+       data4D = cp.flip(data4D,axis=-1)
+    data_shape = cp.shape(data4D)
+    data4D = csnd.rotate(data4D.reshape(-1, data_shape[-2], data_shape[-1]), rotangle, axes=(1,2), reshape=False)
+    if return_numpy:
+       data4D = cp.asnumpy(data4D)        
+    return data4D
 
