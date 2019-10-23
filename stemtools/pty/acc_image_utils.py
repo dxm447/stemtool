@@ -39,11 +39,11 @@ def cupy_jit_resizer(data,N):
     return res
 
 def cupy_jit_resizer2D(data2D,new_size):
-    size_y = int(sizer[0])
-    size_x = int(sizer[1])
+    size_y = int(new_size[0])
+    size_x = int(new_size[1])
     cudat2D = cp.asarray(data2D)
-    cures_y = cp.zeros((size_y,data2D.shape[1]),dtype=data.dtype) #first resize along y dim
-    cures_f = cp.zeros((size_y,size_x),dtype=data.dtype) #now avlong both
+    cures_y = cp.zeros((size_y,data2D.shape[1]),dtype=data2D.dtype) #first resize along y dim
+    cures_f = cp.zeros((size_y,size_x),dtype=data2D.dtype) #now avlong both
     cupy_jit_2D_ydim(cudat2D,size_y,cures_y,data2D.shape[1])
     cupy_jit_2D_xdim(cures_y,size_x,cures_f,size_y)
     res2D = cp.asnumpy(cures_f)
