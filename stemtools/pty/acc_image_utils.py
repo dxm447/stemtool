@@ -47,6 +47,15 @@ def floor_jit(x):
        fx = rx
     return fx
 
+@numba.vectorize([numba.int64(numba.float64)])
+def sum_jit(x):
+    rx = round(x)
+    if rx > x:
+       fx = rx - 1
+    else:
+       fx = rx
+    return fx
+
 @numba.cuda.jit
 def cupy_jit_resizer_gpu(cudat,N,cures, carry, data_sum):
     M = cudat.size
@@ -54,8 +63,10 @@ def cupy_jit_resizer_gpu(cudat,N,cures, carry, data_sum):
     #m_array = cp.floor((M/N)*cp.arange(N+1)) 
     for n in range(int(N)):
         data_sum[0] = carry[0]
-        m_stop = math.floor((n + 1)*(M/N))
-        data_sum[0] = data_sum[0] + functools.reduce(operator.add,list(cudat[m_start:m_stop]),0,0)
+        m_stop = int(math.floor((n + 1)*(M/N)))
+        for ii in range(m_start,m_stop):
+            data_sum[0] += cudat[ii]
+        #data_sum[0] = data_sum[0] + functools.reduce(operator.add,list(cudat[m_start:m_stop]),0,0)
         m_start = m_stop
         carry[0] = (m_stop-(n+1)*M/N)*cudat[m_stop-1]
         data_sum[0] = data_sum[0] - carry[0]
