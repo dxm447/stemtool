@@ -9,6 +9,6 @@ n1 = np.exp(-(((np.arange(original_size) - (0.5*original_size))/sigma)**2))
 loop_tester = 5
 t1 = time.time()
 for ii in range(loop_tester):
-    n2 = acc.cupy_jit_resizer(n1,new_size)
+    n2 = acc.cupy_resizer(n1,new_size)
 t2 = time.time()
 print((t2 - t1)/loop_tester)
