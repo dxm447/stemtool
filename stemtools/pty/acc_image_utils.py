@@ -49,6 +49,18 @@ def cupy_jit_resizer2D(data2D,new_size):
     res2D = cp.asnumpy(cures_f)
     return res2D
 
+def cupy_jit_resizer4D(data4D,resized_size,return_numpy=False):
+    data_size = np.shape(data4D)
+    flattened_shape = (data_size[0]*data_size[1],data_size[2]*data_size[3])
+    data4D_flatten = cp.reshape(cp.asarray(data4D),flattened_shape)
+    flat_res_shape = (data_size[0]*data_size[1],resized_size[0]*resized_size[1])
+    flatres4D = cp.zeros(flat_res_shape,dtype=data4D.dtype)
+    cupy_jit_2D_xdim(data4D_flatten,flat_res_shape[1],flatres4D,flat_res_shape[0])
+    res4D = cp.reshape(flatres4D,(data_size[0],data_size[1],resized_size[0],resized_size[1]))
+    if return_numpy:
+       res4D = cp.asnumpy(res4D)
+    return res4D
+
 @numba.cuda.jit(device=True)
 def cupy_jit_resizer_gpu(cudat,N,cures):
     M = cudat.size
