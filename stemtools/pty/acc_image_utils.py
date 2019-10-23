@@ -64,23 +64,24 @@ def cupy_jit_resizer4D(data4D,resized_size,return_numpy=False):
 
 def cupy_pad(data4D,padded_size):
     data4D = cp.asarray(data4D)
-    data_size = cp.asarray(data4D.shape,dtype=int)
-    padded_size = cp.asarray(padded_size,dtype=int)
+    data_size = data4D.shape
     no_pixels = int(data_size[0]*data_size[1])
-    data4D = cp.reshape(data4D,(no_pixels,data_size[2],data_size[3]))
-    pad_4D = cp.zeros((no_pixels,padded_size[0],padded_size[1]),dtype=data4D.dtype)
+    reshaped_data4D_size = (no_pixels,data_size[2],data_size[3])
+    padded_4D_size = (no_pixels,padded_size[0],padded_size[1])
+    data4D = cp.reshape(data4D,reshaped_data4D_size)
+    pad_4D = cp.zeros(padded_4D_size,dtype=data4D.dtype)
     raw_size = data_size[2:]
-    pad_width = int(0.5*(padded_size - raw_size))
+    pad_width = (0.5*(np.asarray(padded_size) - np.asarray(raw_size))).astype(int)
     cupy_jit_gpu_pad4D(data4D,pad_4D,pad_width,no_pixels)
-    pad_4D = cp.reshape(pad_4D,(data_size[0],data_size[1],padded_size[0],padded_size[1]))
+    final_pad_size = (data_size[0],data_size[1],padded_size[0],padded_size[1])
+    pad_4D = cp.reshape(pad_4D,final_pad_size)
     if return_numpy:
        pad_4D = cp.asnumpy(pad_4D)
     return pad_4D
 
-@numba.cuda.jit
 def cupy_jit_gpu_pad4D(cudata4D_flat,cupad4D_flat,pad_width,no_pixels):
     for ii in range(no_pixels):
-        cupad4D_flat[ii,:,:] = cp.pad(cudata4D_flat,((pad_width[0], pad_width[0]), (pad_width[1], pad_width[1])))
+        cupad4D_flat[ii,:,:] = cp.pad(cudata4D_flat,((pad_width[0], pad_width[0]), (pad_width[1], pad_width[1])),mode='constant')
     
 @numba.cuda.jit(device=True)
 def cupy_jit_resizer_gpu(cudat,N,cures):
