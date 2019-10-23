@@ -46,18 +46,20 @@ def cupy_jit_resizer2D(data2D,new_size):
     cures_f = cp.zeros((size_y,size_x),dtype=data.dtype) #now avlong both
     cupy_jit_2D_ydim(cudat2D,size_y,cures_y,data2D.shape[1])
     cupy_jit_2D_ydim(cures_y,size_x,cures_f,size_y)
+    res2D = cp.asnumpy(cures_f)
+    return res2D
 
 @numba.cuda.jit
 def cupy_jit_2D_ydim(cudat2D,size_y,cures_y,Nx):
     for ii in range(Nx):
-        cupy_jit_resizer_gpu(cudat2D[:,ii],size_y,cures_y[:,ii]
+        cupy_jit_resizer_gpu(cudat2D[:,ii],size_y,cures_y[:,ii])
     
 @numba.cuda.jit
 def cupy_jit_2D_xdim(cures_y,size_x,cures_f,size_y):
     for ii in range(size_y):
-        cupy_jit_resizer_gpu(cures_y[ii,:],size_x,cures_f[ii,:]
+        cupy_jit_resizer_gpu(cures_y[ii,:],size_x,cures_f[ii,:])
  
-@numba.cuda.jit
+@numba.cuda.jit(device=True)
 def cupy_jit_resizer_gpu(cudat,N,cures):
     M = cudat.size
     m_start = 0
