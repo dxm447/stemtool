@@ -37,6 +37,9 @@ stemtools/pty/.ipynb_checkpoints/
 
 # C extensions
 *.so
+*.out
+*.prof
+*.swp
 
 # Distribution / packaging
 .Python
