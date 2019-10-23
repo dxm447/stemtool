@@ -51,7 +51,7 @@ def cupy_jit_resizer2D(data2D,new_size):
 
 def cupy_jit_resizer4D(data4D,resized_size,return_numpy=False):
     data4D = cp.asarray(data4D) 
-    data_size = cp.shape(data4D)
+    data_size = data4D.shape
     flattened_shape = (data_size[0]*data_size[1],data_size[2]*data_size[3])
     data4D_flatten = cp.reshape(data4D,flattened_shape)
     flat_res_shape = (data_size[0]*data_size[1],resized_size[0]*resized_size[1])
@@ -64,22 +64,23 @@ def cupy_jit_resizer4D(data4D,resized_size,return_numpy=False):
 
 def cupy_pad(data4D,padded_size):
     data4D = cp.asarray(data4D)
-    data_size = cp.shape(data4D)
-    data_4D = cp.reshape(data4D,(data_size[0]*data_size[1],data_size[2],data_size[3]))
-    pad_4D = cp.zeros((data_size[0]*data_size[1],padded_size[0],padded_size[1]),dtype=data4D.dtype)
-    no_pixels = data_size[0]*data_size[1]
+    data_size = cp.asarray(data4D.shape,dtype=int)
+    padded_size = cp.asarray(padded_size,dtype=int)
+    no_pixels = int(data_size[0]*data_size[1])
+    data4D = cp.reshape(data4D,(no_pixels,data_size[2],data_size[3]))
+    pad_4D = cp.zeros((no_pixels,padded_size[0],padded_size[1]),dtype=data4D.dtype)
     raw_size = data_size[2:]
-    cupy_jit_gpu_pad4D(data_4D,pad_4D,raw_size,padded_size,no_pixels)
+    pad_width = int(0.5*(padded_size - raw_size))
+    cupy_jit_gpu_pad4D(data4D,pad_4D,pad_width,no_pixels)
     pad_4D = cp.reshape(pad_4D,(data_size[0],data_size[1],padded_size[0],padded_size[1]))
     if return_numpy:
        pad_4D = cp.asnumpy(pad_4D)
     return pad_4D
 
 @numba.cuda.jit
-def cupy_jit_gpu_pad4D(cudata4D_flat,cupad4D_flat,raw_size,pad_size,no_pixels):
-    pad_width = int(0.5*(pad_size - data_size[1:]))
+def cupy_jit_gpu_pad4D(cudata4D_flat,cupad4D_flat,pad_width,no_pixels):
     for ii in range(no_pixels):
-        cupad4D[ii,:,:] = cp.pad(cudata4D,((pad_width[0], pad_width[0]), (pads_width[1], pad_width[1])))
+        cupad4D_flat[ii,:,:] = cp.pad(cudata4D_flat,((pad_width[0], pad_width[0]), (pad_width[1], pad_width[1])))
     
 @numba.cuda.jit(device=True)
 def cupy_jit_resizer_gpu(cudat,N,cures):
@@ -117,7 +118,7 @@ def gpu_rot4D(data4D,rotangle,flip=True,return_numpy=False):
     data4D = cp.asarray(data4D,dtype=np.float16)
     if flip:
        data4D = cp.flip(data4D,axis=-1)
-    data_shape = cp.shape(data4D)
+    data_shape = data4D.shape
     data4D = csnd.rotate(data4D.reshape(-1, data_shape[-2], data_shape[-1]), rotangle, axes=(1,2), reshape=False)
     if return_numpy:
        data4D = cp.asnumpy(data4D)        

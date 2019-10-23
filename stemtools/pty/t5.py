@@ -9,5 +9,6 @@ loop_tester = 3
 t1 = time.time()
 for ii in range(loop_tester):
     n2 = acc.cupy_jit_resizer4D(n1,(new_size,new_size))
+    n3 = acc.cupy_pad(n2,(ori_size,ori_size))
 t2 = time.time()
 print((t2 - t1)/loop_tester)
