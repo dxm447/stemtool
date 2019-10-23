@@ -34,43 +34,44 @@ def cupy_jit_resizer(data,N):
     cures = cp.zeros(int(N),dtype=data.dtype)
     carry=cp.zeros(1,dtype=data.dtype)
     data_sum = cp.zeros(1,dtype=data.dtype)
-    cupy_jit_resizer_gpu(cudat,N, cures, carry, data_sum)
+    cupy_jit_resizer_gpu(cudat,N, cures)
     res = cp.asnumpy(cures)
     return res
 
-@numba.vectorize([numba.int64(numba.float64)])
-def floor_jit(x):
-    rx = round(x)
-    if rx > x:
-       fx = rx - 1
-    else:
-       fx = rx
-    return fx
-
-@numba.vectorize([numba.int64(numba.float64)])
-def sum_jit(x):
-    rx = round(x)
-    if rx > x:
-       fx = rx - 1
-    else:
-       fx = rx
-    return fx
+def cupy_jit_resizer2D(data2D,new_size):
+    size_y = int(sizer[0])
+    size_x = int(sizer[1])
+    cudat2D = cp.asarray(data2D)
+    cures_y = cp.zeros((size_y,data2D.shape[1]),dtype=data.dtype) #first resize along y dim
+    cures_f = cp.zeros((size_y,size_x),dtype=data.dtype) #now avlong both
+    cupy_jit_2D_ydim(cudat2D,size_y,cures_y,data2D.shape[1])
+    cupy_jit_2D_ydim(cures_y,size_x,cures_f,size_y)
 
 @numba.cuda.jit
-def cupy_jit_resizer_gpu(cudat,N,cures, carry, data_sum):
+def cupy_jit_2D_ydim(cudat2D,size_y,cures_y,Nx):
+    for ii in range(Nx):
+        cupy_jit_resizer_gpu(cudat2D[:,ii],size_y,cures_y[:,ii]
+    
+@numba.cuda.jit
+def cupy_jit_2D_xdim(cures_y,size_x,cures_f,size_y):
+    for ii in range(size_y):
+        cupy_jit_resizer_gpu(cures_y[ii,:],size_x,cures_f[ii,:]
+ 
+@numba.cuda.jit
+def cupy_jit_resizer_gpu(cudat,N,cures):
     M = cudat.size
     m_start = 0
-    #m_array = cp.floor((M/N)*cp.arange(N+1)) 
+    carry = 0
+    data_sum = 0 
     for n in range(int(N)):
-        data_sum[0] = carry[0]
+        data_sum = carry
         m_stop = int(math.floor((n + 1)*(M/N)))
         for ii in range(m_start,m_stop):
-            data_sum[0] += cudat[ii]
-        #data_sum[0] = data_sum[0] + functools.reduce(operator.add,list(cudat[m_start:m_stop]),0,0)
+            data_sum += cudat[ii]
         m_start = m_stop
-        carry[0] = (m_stop-(n+1)*M/N)*cudat[m_stop-1]
-        data_sum[0] = data_sum[0] - carry[0]
-        cures[n] = data_sum[0]*N/M
+        carry = (m_stop-(n+1)*M/N)*cudat[m_stop-1]
+        data_sum -= carry
+        cures[n] = data_sum*(N/M)
 
 
 def cu_rot(arr,angle):
