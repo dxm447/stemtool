@@ -49,8 +49,7 @@ def cupy_jit_resizer2D(data2D,new_size):
     res2D = cp.asnumpy(cures_f)
     return res2D
 
-#@numba.cuda.jit(device=True)
-@numba.cuda.jit
+@numba.cuda.jit(device=True)
 def cupy_jit_resizer_gpu(cudat,N,cures):
     M = cudat.size
     m_start = 0
