@@ -35,10 +35,8 @@ def ssb_kernel(processed4D,real_calibration,aperture,voltage):
     FourXY = cp.asarray(FourXY)
     Left_Lobe = cp.asarray(Left_Lobe)
     RightLobe = cp.asarray(RightLobe)
-    rsize = cp.asarray((data_size[0],data_size[1]),dtype=int)
     
-    #pass to JIT kernel
-    lobe_calc(Left_Lobe,RightLobe,Four_Y,Four_X,FourXY,rsize,cutoff)
+    lobe_calc(Left_Lobe,RightLobe,Four_Y,Four_X,FourXY,cutoff)
     
     data_phase = phase_cupy(processed4D)
     data_ampli = ampli_cupy(processed4D)
@@ -49,11 +47,11 @@ def ssb_kernel(processed4D,real_calibration,aperture,voltage):
     
     return left_image,rightimage
 
-def lobe_calc(Left_Lobe,RightLobe,Four_Y,Four_X,FourXY,rsize,cutoff):
+def lobe_calc(Left_Lobe,RightLobe,Four_Y,Four_X,FourXY,cutoff):
     lobe_shape = Left_Lobe.shape
     two_dims_rolled = lobe_shape[2]*lobe_shape[3]
-    Left_Lobe = cp.ascontiguousarray(cp.reshape(Left_Lobe,(lobe_shape[0],lobe_shape[1],two_dims_rolled)))
-    RightLobe = cp.ascontiguousarray(cp.reshape(RightLobe,(lobe_shape[0],lobe_shape[1],two_dims_rolled)))
+    Left_Lobe = cp.reshape(Left_Lobe,(lobe_shape[0],lobe_shape[1],two_dims_rolled))
+    RightLobe = cp.reshape(RightLobe,(lobe_shape[0],lobe_shape[1],two_dims_rolled))
     for pp in range(int(two_dims_rolled)):
         (ii,jj) = np.unravel_index(pp, (lobe_shape[2],lobe_shape[3]))
         xq = Four_X[ii,jj]
@@ -73,5 +71,5 @@ def lobe_calc(Left_Lobe,RightLobe,Four_Y,Four_X,FourXY,rsize,cutoff):
         rr[d_minu < cutoff] = 1
         rr[d_zero < cutoff] = 1
         RightLobe[:,:,pp] = rr
-    Left_Lobe = cp.ascontiguousarray(cp.reshape(Left_Lobe,lobe_shape))
-    RightLobe = cp.ascontiguousarray(cp.reshape(RightLobe,lobe_shape))
+    Left_Lobe = cp.reshape(Left_Lobe,lobe_shape)
+    RightLobe = cp.reshape(RightLobe,lobe_shape)
