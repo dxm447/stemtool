@@ -7,9 +7,9 @@ import ssb2 as ssb
 ori_size = 64
 new_size = 32
 n1 = np.random.rand(ori_size,ori_size,ori_size,ori_size)
-loop_tester = 4
+loop_tester = 1
 t1 = time.time()
-for ii in range(loop_tester):
+for _ in range(loop_tester):
     #real in 0,1 Q in 2,3
     n2 = acc.gpu_rot4D(n1,53)
     n2 = acc.cupy_resizer4D(n2,(new_size,new_size))

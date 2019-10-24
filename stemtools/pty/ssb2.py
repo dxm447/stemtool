@@ -35,9 +35,9 @@ def ssb_kernel(processed4D,real_calibration,aperture,voltage):
     data_phase = cp.angle(processed4D)
     data_ampli = cp.absolute(processed4D)
     left_trotter = cp.multiply(cp.multiply(data_ampli,Left_Lobe),cp.exp((1j)*cp.multiply(data_phase,Left_Lobe)))
-    left_image = cp.asnumpy(cp.fft.ifft2(cp.sum(left_trotter,axis=(0,1))))
+    left_image = cp.sum(left_trotter,axis=(0,1))
     righttrotter = cp.multiply(cp.multiply(data_ampli,RightLobe),cp.exp((1j)*cp.multiply(data_phase,RightLobe)))
-    rightimage = cp.asnumpy(cp.fft.ifft2(cp.sum(righttrotter,axis=(0,1))))
+    rightimage = cp.sum(righttrotter,axis=(0,1))
     
     return left_image,rightimage
 
