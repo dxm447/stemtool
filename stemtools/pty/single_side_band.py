@@ -43,7 +43,7 @@ def ssb_kernel(processed4D,real_calibration,aperture,voltage):
     FourXY = cp.asarray(FourXY)
     Left_Lobe = cp.asarray(Left_Lobe)
     RightLobe = cp.asarray(RightLobe)
-    rsize = cp.asarray(data_size[0:1])
+    rsize = cp.asarray((data_size[0],data_size[1]),dtype=int)
     
     #pass to JIT kernel
     lobe_calc(Left_Lobe,RightLobe,Four_Y,Four_X,FourXY,rsize,cutoff)
@@ -61,8 +61,10 @@ def ssb_kernel(processed4D,real_calibration,aperture,voltage):
 def lobe_calc(Left_Lobe,RightLobe,Four_Y,Four_X,FourXY,rsize,cutoff):
     for ii in range(rsize[0]):
         for jj in range(rsize[1]):
-            d_plus = (((Four_X + Four_X[ii,jj]) ** 2) + ((Four_Y + Four_Y[ii,jj]) ** 2)) ** 0.5  
-            d_minu = (((Four_X - Four_X[ii,jj]) ** 2) + ((Four_Y - Four_Y[ii,jj]) ** 2)) ** 0.5
+            xq = Four_X[ii,jj]
+            yq = Four_Y[ii,jj]
+            d_plus = (((Four_X + xq) ** 2) + ((Four_Y + yq) ** 2)) ** 0.5  
+            d_minu = (((Four_X - xq) ** 2) + ((Four_Y - yq) ** 2)) ** 0.5
             d_zero = FourXY
             
             ll = Left_Lobe[:,:,ii,jj]
