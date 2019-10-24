@@ -16,6 +16,7 @@ stemtools/pty/__pycache__/
 *.py[cod]
 *$py.class
 *.pyc
+*.swp.py
 
 .ipynb_checkpoints/
 notebooks/.ipynb_checkpoints/
