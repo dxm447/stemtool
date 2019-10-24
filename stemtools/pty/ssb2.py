@@ -1,12 +1,6 @@
 import numpy as np
 import cupy as cp
 
-def phase_cupy(complex_arr):
-    return(cp.arctan(cp.imag(complex_arr)/cp.real(complex_arr)))
-
-def ampli_cupy(complex_arr):
-    return((((cp.imag(complex_arr) ** 2) + (cp.real(complex_arr) ** 2)) ** 0.5))
-
 def e_lambda(voltage_kV):
     m = 9.109383 * (10 ** (-31))  # mass of an electron
     e = 1.602177 * (10 ** (-19))  # charge of an electron
@@ -38,8 +32,8 @@ def ssb_kernel(processed4D,real_calibration,aperture,voltage):
     
     lobe_calc(Left_Lobe,RightLobe,Four_Y,Four_X,FourXY,cutoff)
     
-    data_phase = phase_cupy(processed4D)
-    data_ampli = ampli_cupy(processed4D)
+    data_phase = cp.angle(processed4D)
+    data_ampli = cp.absolute(processed4D)
     left_trotter = cp.multiply(cp.multiply(data_ampli,Left_Lobe),cp.exp((1j)*cp.multiply(data_phase,Left_Lobe)))
     left_image = cp.asnumpy(cp.fft.ifft2(cp.sum(left_trotter,axis=(0,1))))
     righttrotter = cp.multiply(cp.multiply(data_ampli,RightLobe),cp.exp((1j)*cp.multiply(data_phase,RightLobe)))
