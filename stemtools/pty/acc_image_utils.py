@@ -5,6 +5,7 @@ import cupy as cp
 import cupyx.scipy.ndimage as csnd
 import operator
 import functools
+import warnings
 from numba import cuda
 import numba.cuda
 numba.cuda.select_device(3)
@@ -53,11 +54,11 @@ def cupy_jit_resizer4D(data4D,resized_size,return_numpy=False):
     data4D = cp.asarray(data4D) 
     data_size = data4D.shape
     flattened_shape = (data_size[0]*data_size[1],data_size[2]*data_size[3])
-    data4D_flatten = cp.reshape(data4D,flattened_shape)
+    data4D = cp.reshape(data4D,flattened_shape)
     flat_res_shape = (data_size[0]*data_size[1],resized_size[0]*resized_size[1])
-    flatres4D = cp.zeros(flat_res_shape,dtype=data4D.dtype)
-    cupy_jit_2D_xdim(data4D_flatten,flat_res_shape[1],flatres4D,flat_res_shape[0])
-    res4D = cp.reshape(flatres4D,(data_size[0],data_size[1],resized_size[0],resized_size[1]))
+    res4D = cp.zeros(flat_res_shape,dtype=data4D.dtype)
+    cupy_jit_2D_xdim(data4D,flat_res_shape[1],res4D,flat_res_shape[0])
+    res4D = cp.reshape(res4D,(data_size[0],data_size[1],resized_size[0],resized_size[1]))
     if return_numpy:
        res4D = cp.asnumpy(res4D)
     return res4D
@@ -116,6 +117,7 @@ def cu_rot(arr,angle):
     return rot_arr
 
 def gpu_rot4D(data4D,rotangle,flip=True,return_numpy=False):
+    warnings.filterwarnings('ignore')
     data4D = cp.asarray(data4D,dtype=data4D.dtype)
     if flip:
        data4D = cp.flip(data4D,axis=-1)
