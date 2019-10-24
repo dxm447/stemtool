@@ -64,7 +64,17 @@ def cupy_resizer4D(data4D,resized_size,return_numpy=False):
        res4D = cp.asnumpy(res4D)
     return res4D
 
-def cupy_pad4D(data4D,padded_size,return_numpy=False):
+def cupy_resizer4D_flat(data4Df,resized_size):
+    data4Df = cp.asarray(data4Df) 
+    data_size = data4Df.shape
+    flattened_shape = (data_size[0],data_size[1]*data_size[2])
+    data4Df = cp.reshape(data4Df,flattened_shape)
+    flat_res_shape = (data_size[0],resized_size[0]*resized_size[1])
+    res4D = cp.zeros(flat_res_shape,dtype=data4Df.dtype)
+    res4D = cupy_xdim_res_loop(data4Df,res4D,flat_res_shape[0])
+    return res4D
+
+def cupy_pad4D(data4D,padded_size):
     data4D = cp.asarray(data4D)
     data_size = data4D.shape
     no_pixels = int(data_size[0]*data_size[1])
@@ -77,6 +87,17 @@ def cupy_pad4D(data4D,padded_size,return_numpy=False):
         cupad4D_flat[ii,:,:] = cp.pad(cudata4D_flat[ii,:,:],((pad_width[0], pad_width[0]), (pad_width[1], pad_width[1])),mode='constant')
     final_pad_size = (data_size[0],data_size[1],padded_size[0],padded_size[1])
     pad_4D = cp.reshape(pad_4D,final_pad_size)
+    return pad_4D
+
+def cupy_pad4D_flat(data4Df,padded_size,return_numpy=False):
+    data4Df = cp.asarray(data4Df)
+    data_size = data4Df.shape
+    raw_size = data4Df[1:]
+    padded_4D_size = (data_size[0],padded_size[0],padded_size[1])
+    pad_4D = cp.zeros(padded_4D_size,dtype=data4Df.dtype)
+    pad_width = (0.5*(np.asarray(padded_size) - np.asarray(raw_size))).astype(int)
+    for ii in range(data_size[0]):
+        pad_4D[ii,:,:] = cp.pad(data4Df[ii,:,:],((pad_width[0], pad_width[0]), (pad_width[1], pad_width[1])),mode='constant')
     if return_numpy:
        pad_4D = cp.asnumpy(pad_4D)
     return pad_4D
@@ -99,3 +120,10 @@ def gpu_rot4D(data4D,rotangle,flip=True,return_numpy=False):
        data4D = cp.asnumpy(data4D)        
     return data4D
 
+def gpu_rot4D_flat(data4Df,rotangle,flip=True,return_numpy=False):
+    warnings.filterwarnings('ignore')
+    data4Df = cp.asarray(data4Df,dtype=data4D.dtype)
+    if flip:
+       data4Df = cp.flip(data4Df,axis=-1)
+    data4Df = csnd.rotate(data4Df, rotangle, axes=(1,2), reshape=False)
+    return data4Df
