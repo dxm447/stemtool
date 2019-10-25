@@ -54,10 +54,14 @@ def cupy_jit_resizer4D(data4D,resized_size,return_numpy=False):
     data4D = cp.asarray(data4D) 
     data_size = data4D.shape
     flattened_shape = (data_size[0]*data_size[1],data_size[2]*data_size[3])
-    data4D = cp.reshape(data4D,flattened_shape)
+    data4D = data4D.reshape(*flattened_shape)
     flat_res_shape = (data_size[0]*data_size[1],resized_size[0]*resized_size[1])
     res4D = cp.zeros(flat_res_shape,dtype=data4D.dtype)
-    cupy_jit_2D_xdim[1,1](data4D,flat_res_shape[1],res4D,flat_res_shape[0])
+    for item in (data4D,flat_res_shape[1],res4D,flat_res_shape[0]):
+        print(type(item))
+    for ii in range(flat_res_shape[0]):
+        cupy_jit_2D_xdim[1,1](data4D[ii], flat_res_shape[1], res4D[ii])
+    #cupy_jit_2D_xdim[1,1](data4D,flat_res_shape[1],res4D,flat_res_shape[0])
     res4D = cp.reshape(res4D,(data_size[0],data_size[1],resized_size[0],resized_size[1]))
     if return_numpy:
        res4D = cp.asnumpy(res4D)
@@ -106,9 +110,10 @@ def cupy_jit_2D_ydim(cudat2D,size_y,cures_y,Nx):
         cupy_jit_resizer_gpu(cudat2D[:,ii],size_y,cures_y[:,ii])
     
 @numba.cuda.jit
-def cupy_jit_2D_xdim(cures_y,size_x,cures_f,size_y):
-    for ii in range(size_y):
-        cupy_jit_resizer_gpu(cures_y[ii,:],size_x,cures_f[ii,:])
+def cupy_jit_2D_xdim(cures_y,size_x,cures_f):
+    #for ii in range(size_y):
+    #    cupy_jit_resizer_gpu(cures_y[ii,:],size_x,cures_f[ii,:])
+    cupy_jit_resizer_gpu(cures_y, size_x, cures_f)
 
 def cu_rot(arr,angle):
     cu_arr = cp.asarray(arr)
