@@ -8,7 +8,7 @@ import functools
 import warnings
 from numba import cuda
 import numba.cuda
-numba.cuda.select_device(3)
+#numba.cuda.select_device(3)
 
 
 def cupy_resizer(data,N):   
@@ -57,7 +57,7 @@ def cupy_jit_resizer4D(data4D,resized_size,return_numpy=False):
     data4D = cp.reshape(data4D,flattened_shape)
     flat_res_shape = (data_size[0]*data_size[1],resized_size[0]*resized_size[1])
     res4D = cp.zeros(flat_res_shape,dtype=data4D.dtype)
-    cupy_jit_2D_xdim(data4D,flat_res_shape[1],res4D,flat_res_shape[0])
+    cupy_jit_2D_xdim[1,1](data4D,flat_res_shape[1],res4D,flat_res_shape[0])
     res4D = cp.reshape(res4D,(data_size[0],data_size[1],resized_size[0],resized_size[1]))
     if return_numpy:
        res4D = cp.asnumpy(res4D)
